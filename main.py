@@ -94,10 +94,7 @@ exams = {
             "วิทยาศาสตร์": {
                 "2567": "https://www.niets.or.th/th/content/uploads/editor/files/O-NET/exam_m6_2567/Sample%20O-NET%20M6-science.pdf"
             }    
-
-            
     }
-
 }
 
 # 🔽 dropdown หมวดหมู่
@@ -131,6 +128,15 @@ years = [
     app_commands.Choice(name="2568", value="2568"),
 ]
 
+# 🔥 background task สำหรับลบข้อความหลัง delay วินาที
+async def delete_after_delay(interaction: discord.Interaction, delay: int = 300):
+    await asyncio.sleep(delay)
+    try:
+        msg = await interaction.original_response()
+        await msg.delete()
+    except Exception as e:
+        print(f"ลบไม่ได้: {e}")
+
 @bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
@@ -150,7 +156,6 @@ async def posn(
     subject: app_commands.Choice[str],
     year: app_commands.Choice[str]
 ):
-
     # ❌ ใช้ผิดห้อง
     if interaction.channel_id != ALLOWED_CHANNEL_ID:
         await interaction.response.send_message(
@@ -188,20 +193,14 @@ async def posn(
 
         # ✅ ส่งไฟล์
         file = discord.File(file_path)
-
         await interaction.response.send_message(
             content=f"📄{exam_type.name} {subject_value} ปี {year_value}",
             file=file
         )
 
-    # 🔥 ลบข้อความหลัง 5 นาที (วิธีชัวร์)
-    msg = await interaction.original_response()
-    await asyncio.sleep(300)
-    await msg.delete()
+    # ✅ รัน background task ลบข้อความหลัง 5 นาที
+    asyncio.create_task(delete_after_delay(interaction, 300))
 
 server_on()
 
 bot.run(os.getenv("TOKEN"))
-
-
-
